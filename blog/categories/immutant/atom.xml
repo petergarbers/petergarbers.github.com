@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: immutant | Stuff and things]]></title>
+  <link href="http://petergarbers.github.com/blog/categories/immutant/atom.xml" rel="self"/>
+  <link href="http://petergarbers.github.com/"/>
+  <updated>2013-03-20T01:24:34+02:00</updated>
+  <id>http://petergarbers.github.com/</id>
+  <author>
+    <name><![CDATA[Peter Garbers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[You Got Your Ruby in My Clojure! The Tutorial...]]></title>
+    <link href="http://petergarbers.github.com/blog/2013/03/20/you-got-your-ruby-in-my-clojure-the-tutorial-dot-dot-dot/"/>
+    <updated>2013-03-20T00:48:00+02:00</updated>
+    <id>http://petergarbers.github.com/blog/2013/03/20/you-got-your-ruby-in-my-clojure-the-tutorial-dot-dot-dot</id>
+    <content type="html"><![CDATA[<p>In this tutorial I will run you the process of setting up your torquebox so that it is able to serve both jruby and clojure apps from the same app server!</p>
+
+<p>First things first... You will need to install immutant. For those of you unfamiliar with this. Immutant is
+an application server for Clojure. You can find their github project and installation instructions <a href=>here</a></p>
+
+<p>Now the fun begins. I began by following these instructions <a href=>instructions</a>
+but found a couple of gotchas that I hope will help you along with this process.</p>
+
+<p><a href=></a></p>
+
+<!-- more-->
+
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lein immutant overlay torquebox
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>What this does is it downloads a standalone version of TorqueBox along with it's own version of jRuby.
+As a result we need to set the TorqueBox home and tell our system to use the jRuby that comes with TorqueBox.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">TORQUEBOX_HOME</span><span class="o">=</span><span class="nv">$HOME</span>/.lein/immutant/current
+</span><span class='line'><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$TORQUEBOX_HOME</span>/jruby/bin:<span class="nv">$PATH</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Now you'll need to bundle your gems. I'm using the full path to be safe</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> /path/to/your/jruby/app
+</span><span class='line'><span class="nv">$TORQUEBOX_HOME</span>/jruby/bin/jruby -S bundle install
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This is where the excitement starts. You will now tell TorqueBox to deploy your jRuby app.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>torquebox deploy /path/to/your/jruby/app
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Now if you're lucky, from the root of your clojure app</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>lein immutant run
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>I however wasn't so lucky and was greeted by a massive stack trace. Upon futher inspection the following was found:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>22:06:15,000 ERROR <span class="o">[</span>org.projectodd.polyglot.cache.as<span class="o">]</span> <span class="o">(</span>MSC service thread 1-1<span class="o">)</span> Cannot get cache container. : javax.naming.NameNotFoundException: infinispan/container/polyglot -- service jboss.naming.context.java.jboss.infinispan.container.polyglot
+</span><span class='line'>  at org.jboss.as.naming.ServiceBasedNamingStore.lookup<span class="o">(</span>ServiceBasedNamingStore.java:103<span class="o">)</span>&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;pre&gt;&lt;code&gt;at org.jboss.as.naming.NamingContext.lookup<span class="o">(</span>NamingContext.java:193<span class="o">)</span>
+</span><span class='line'>at org.jboss.as.naming.NamingContext.lookup<span class="o">(</span>NamingContext.java:173<span class="o">)</span>
+</span><span class='line'>at org.jboss.as.naming.InitialContext.lookup<span class="o">(</span>InitialContext.java:122<span class="o">)</span>
+</span><span class='line'>at org.jboss.as.naming.NamingContext.lookup<span class="o">(</span>NamingContext.java:182<span class="o">)</span>
+</span><span class='line'>at org.jboss.as.naming.NamingContext.lookup<span class="o">(</span>NamingContext.java:178<span class="o">)</span>
+</span><span class='line'>...
+</span><span class='line'>&lt;/code&gt;&lt;/pre&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>After chatting to the nice people on #immutant on freenode I was told to look for the <container-cache> in ~/.lein/immutant/current/jboss/standalone/configuration/standalone.xml and append the following:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>~/.lein/immutant/current/jboss/standalone/configuration/standalone.xml </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;cache-container</span> <span class="na">name=</span><span class="s">&#39;polyglot&#39;</span> <span class="na">default-cache=</span><span class="s">&#39;sessions&#39;</span> <span class="na">aliases=</span><span class="s">&#39;torquebox&#39;</span><span class="nt">&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="ni">&amp;lt;</span>local-cache name=&#39;sessions&#39; start=&#39;EAGER&#39;<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>eviction strategy=&#39;LRU&#39; max-entries=&#39;10000&#39;/<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>expiration max-idle=&#39;100000&#39;/<span class="ni">&amp;gt;</span>
+</span><span class='line'>    <span class="ni">&amp;lt;</span>transaction mode=&#39;FULL_XA&#39;/<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>/local-cache<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;p&gt;&lt;/cache-container&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Restarted the server once more and everything was just peachy :)</p>
+]]></content>
+  </entry>
+  
+</feed>
